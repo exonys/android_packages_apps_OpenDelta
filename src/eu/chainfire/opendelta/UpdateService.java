@@ -22,33 +22,21 @@
 package eu.chainfire.opendelta;
 
 import android.annotation.SuppressLint;
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
+import android.app.*;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
-import android.os.PowerManager;
+import android.os.*;
 import android.os.Process;
-import android.os.StatFs;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
-
 import eu.chainfire.opendelta.BatteryState.OnBatteryStateListener;
 import eu.chainfire.opendelta.NetworkState.OnNetworkStateListener;
 import eu.chainfire.opendelta.Scheduler.OnWantUpdateCheckListener;
 import eu.chainfire.opendelta.ScreenState.OnScreenStateListener;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -58,12 +46,7 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -80,8 +63,7 @@ public class UpdateService
         OnBatteryStateListener,
         OnScreenStateListener,
         OnWantUpdateCheckListener,
-        OnSharedPreferenceChangeListener
-{
+        OnSharedPreferenceChangeListener {
     public static void start(Context context) {
         start(context, null);
     }
@@ -189,10 +171,10 @@ public class UpdateService
     private boolean setPermissions(String path, int mode, int uid, int gid) {
         try {
             Class<?> FileUtils = getClassLoader().loadClass("android.os.FileUtils");
-            Method setPermissions = FileUtils.getDeclaredMethod("setPermissions", new Class[] {
+            Method setPermissions = FileUtils.getDeclaredMethod("setPermissions", new Class[]{
                     String.class, int.class, int.class, int.class
             });
-            return ((Integer) setPermissions.invoke(null, new Object[] {
+            return ((Integer) setPermissions.invoke(null, new Object[]{
                     path, Integer.valueOf(mode), Integer.valueOf(uid), Integer.valueOf(gid)
             }) == 0);
         } catch (Exception e) {
@@ -280,7 +262,7 @@ public class UpdateService
     }
 
     private synchronized void updateState(String state, Float progress, Long current, Long total,
-            String filename, Long ms) {
+                                          String filename, Long ms) {
         this.state = state;
 
         Intent i = new Intent(BROADCAST_INTENT);
@@ -423,7 +405,7 @@ public class UpdateService
     }
 
     private boolean downloadUrlFile(String url, File f, String matchMD5,
-            DeltaInfo.ProgressListener progressListener) {
+                                    DeltaInfo.ProgressListener progressListener) {
         Logger.d("download: %s", url);
 
         MessageDigest digest = null;
@@ -487,7 +469,7 @@ public class UpdateService
     }
 
     private DeltaInfo.ProgressListener getMD5Progress(String state, String filename) {
-        final long[] last = new long[] {
+        final long[] last = new long[]{
                 0, SystemClock.elapsedRealtime()
         };
         final String _state = state;
@@ -543,7 +525,7 @@ public class UpdateService
     }
 
     private boolean downloadDeltaFile(String url_base, DeltaInfo.FileBase fileBase,
-            DeltaInfo.FileSizeMD5 match, DeltaInfo.ProgressListener progressListener, boolean force) {
+                                      DeltaInfo.FileSizeMD5 match, DeltaInfo.ProgressListener progressListener, boolean force) {
         if (fileBase.getTag() == null) {
             if (force || networkState.getState()) {
                 String url = url_base + fileBase.getName();
@@ -571,7 +553,7 @@ public class UpdateService
     }
 
     private Thread getThreadedProgress(String filename, String display, long start,
-            long currentOut, long totalOut) {
+                                       long currentOut, long totalOut) {
         final File _file = new File(filename);
         final String _display = display;
         final long _currentOut = currentOut;
@@ -599,7 +581,7 @@ public class UpdateService
     }
 
     private boolean zipadjust(String filenameIn, String filenameOut, long start, long currentOut,
-            long totalOut) {
+                              long totalOut) {
         Logger.d("zipadjust [%s] --> [%s]", filenameIn, filenameOut);
 
         // checking filesizes in the background as progress, because these
@@ -628,7 +610,7 @@ public class UpdateService
     }
 
     private boolean dedelta(String filenameSource, String filenameDelta, String filenameOut,
-            long start, long currentOut, long totalOut) {
+                            long start, long currentOut, long totalOut) {
         Logger.d("dedelta [%s] --> [%s] --> [%s]", filenameSource, filenameDelta, filenameOut);
 
         // checking filesizes in the background as progress, because these
@@ -671,9 +653,9 @@ public class UpdateService
 
         if (!isStateBusy(state) &&
                 (userInitiated || (
-                networkState.getState() &&
-                        batteryState.getState() &&
-                !screenState.getState()
+                        networkState.getState() &&
+                                batteryState.getState() &&
+                                !screenState.getState()
                 )
                 )) {
             Logger.i("Starting check for updates");
@@ -769,7 +751,7 @@ public class UpdateService
     }
 
     private String findInitialFile(List<DeltaInfo> deltas, String possibleMatch,
-            boolean[] needsProcessing) {
+                                   boolean[] needsProcessing) {
         // Find the currently flashed ZIP, or a newer one
 
         DeltaInfo firstDelta = deltas.get(0);
@@ -803,11 +785,11 @@ public class UpdateService
         if (initialFile == null) {
             // Primary external storage ( == internal storage)
             initialFile = findZIPOnSD(firstDelta.getIn(), Environment.getExternalStorageDirectory());
-            
+
             if (initialFile == null) {
                 // Search secondary external storages ( == sdcards, OTG drives, etc)                 
                 String secondaryStorages = System.getenv("SECONDARY_STORAGE");
-                if ((secondaryStorages != null) && (secondaryStorages.length() > 0)) {            
+                if ((secondaryStorages != null) && (secondaryStorages.length() > 0)) {
                     String[] storages = TextUtils.split(secondaryStorages, File.pathSeparator);
                     for (String storage : storages) {
                         initialFile = findZIPOnSD(firstDelta.getIn(), new File(storage));
@@ -817,7 +799,7 @@ public class UpdateService
                     }
                 }
             }
-            
+
             if (initialFile != null) {
                 match = firstDelta.getIn().match(new File(initialFile), false, null);
             }
@@ -831,17 +813,17 @@ public class UpdateService
     }
 
     private boolean downloadFiles(List<DeltaInfo> deltas, boolean getFull, long totalDownloadSize,
-            boolean force) {
+                                  boolean force) {
         // Download all the files we do not have yet
 
         DeltaInfo lastDelta = deltas.get(deltas.size() - 1);
 
-        final String[] filename = new String[] {
+        final String[] filename = new String[]{
                 null
         };
         updateState(STATE_ACTION_DOWNLOADING, 0f, 0L, totalDownloadSize, null, null);
 
-        final long[] last = new long[] {
+        final long[] last = new long[]{
                 0, totalDownloadSize, 0, SystemClock.elapsedRealtime()
         };
         DeltaInfo.ProgressListener progressListener = new DeltaInfo.ProgressListener() {
@@ -898,14 +880,14 @@ public class UpdateService
     }
 
     private boolean applyPatches(List<DeltaInfo> deltas, String initialFile,
-            boolean initialFileNeedsProcessing) {
+                                 boolean initialFileNeedsProcessing) {
         // Create storeSigned outfile from infile + deltas
 
         DeltaInfo firstDelta = deltas.get(0);
         DeltaInfo lastDelta = deltas.get(deltas.size() - 1);
 
         int tempFile = 0;
-        String[] tempFiles = new String[] {
+        String[] tempFiles = new String[]{
                 config.getPathBase() + "temp1", config.getPathBase() + "temp2"
         };
         try {
@@ -1028,6 +1010,11 @@ public class UpdateService
                 FileOutputStream os = new FileOutputStream("/cache/recovery/openrecoveryscript",
                         false);
                 try {
+                    if (config.getBackupEnabled()) {
+                        //B - backup boot, S - backup system, O - compress, M - Skip MD5
+                        writeString(os, "backup BSOM OmniBackup"); //TODO: Generate backup name
+                    }
+
                     if (config.getInjectSignatureEnable()) {
                         writeString(os, "cmd cat /res/keys > /res/keys_org");
                         writeString(os, "cmd cat /cache/recovery/keys > /res/keys");
@@ -1048,6 +1035,7 @@ public class UpdateService
                             writeString(os, String.format("install %s", file));
                         }
                     }
+
                     writeString(os, "wipe cache");
                 } finally {
                     os.close();
@@ -1171,7 +1159,7 @@ public class UpdateService
                         Logger.d("delta --> [%s]", delta.getOut().getName());
                         fetch = String.format(Locale.ENGLISH, "%s%s.delta",
                                 config.getUrlBaseDelta(), delta
-                                        .getOut().getName().replace(".zip", ""));
+                                .getOut().getName().replace(".zip", ""));
                         deltas.add(delta);
                     }
 
@@ -1220,7 +1208,7 @@ public class UpdateService
                         String initialFile = null;
                         boolean initialFileNeedsProcessing = false;
                         {
-                            boolean[] needsProcessing = new boolean[] {
+                            boolean[] needsProcessing = new boolean[]{
                                     false
                             };
                             initialFile = findInitialFile(deltas, flashFilename, needsProcessing);

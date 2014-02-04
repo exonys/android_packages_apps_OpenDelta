@@ -23,14 +23,9 @@ package eu.chainfire.opendelta;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
+import android.content.*;
 import android.content.DialogInterface.OnClickListener;
 import android.content.DialogInterface.OnMultiChoiceClickListener;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -196,6 +191,8 @@ public class MainActivity extends Activity {
             case R.id.action_about:
                 showAbout();
                 return true;
+            case R.id.action_backup:
+                item.setChecked(config.setBackupEnabled(item.isChecked()));
             default:
                 return super.onOptionsItemSelected(item);
         }

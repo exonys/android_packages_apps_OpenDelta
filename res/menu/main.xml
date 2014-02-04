@@ -12,7 +12,14 @@
         android:showAsAction="never"
         android:checkable="true"
         android:title="@string/action_secure_mode" />
-   
+
+    <item
+            android:id="@+id/action_backup"
+            android:orderInCategory="101"
+            android:showAsAction="never"
+            android:checkable="true"
+            android:title="Backup"/>
+
     <item
         android:id="@+id/action_about"
         android:orderInCategory="102"

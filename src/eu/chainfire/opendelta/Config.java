@@ -47,7 +47,8 @@ public class Config {
     private final static String PREF_SECURE_MODE_NAME = "secure_mode";
     private final static String PREF_SHOWN_RECOVERY_WARNING_SECURE_NAME = "shown_recovery_warning_secure";
     private final static String PREF_SHOWN_RECOVERY_WARNING_NOT_SECURE_NAME = "shown_recovery_warning_not_secure";
-    
+    private final static String PREF_BACKUP = "backup_enabled";
+
     private final SharedPreferences prefs;
 
     private final String property_version;
@@ -245,5 +246,14 @@ public class Config {
     
     public boolean getKeepScreenOn() {
         return keep_screen_on;
+    }
+
+    public boolean setBackupEnabled(boolean b) {
+        prefs.edit().putBoolean(PREF_BACKUP, b).commit();
+        return getBackupEnabled();
+    }
+
+    public boolean getBackupEnabled() {
+        return prefs.getBoolean(PREF_BACKUP, false);
     }
 }
