@@ -51,7 +51,10 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -955,6 +958,12 @@ public class UpdateService
         os.write((s + "\n").getBytes("UTF-8"));
     }
 
+    private String getBackupName() {
+        DateFormat dateFormat = new SimpleDateFormat("ddmmyyyy");
+        Date date = new Date();
+        return dateFormat.format(date);
+    }
+
     @SuppressLint("SdCardPath")
     private void flashUpdate() {
         if (getPackageManager().checkPermission(PERMISSION_ACCESS_CACHE_FILESYSTEM,
@@ -976,6 +985,7 @@ public class UpdateService
 
         // Remove the path to the storage from the filename, so we get a path
         // relative to the root of the storage
+        // TODO: sometimes full path is required, make blacklist???
         String path_sd = Environment.getExternalStorageDirectory() + File.separator;
         flashFilename = flashFilename.substring(path_sd.length());
 
@@ -1012,7 +1022,7 @@ public class UpdateService
                 try {
                     if (config.getBackupEnabled()) {
                         //B - backup boot, S - backup system, O - compress, M - Skip MD5
-                        writeString(os, "backup BSOM OmniBackup"); //TODO: Generate backup name
+                        writeString(os, String.format("backup BSOM %1$s", getBackupName())); //TODO: Generate backup name
                     }
 
                     if (config.getInjectSignatureEnable()) {
